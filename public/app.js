@@ -95,72 +95,6 @@ function closeModal() {
   if (el) el.remove();
 }
 
-// ============ DASHBOARD ============
-renderers = {};
-renderers.dashboard = function () {
-  var o = state.orders;
-  var done = o.filter(function (x) { return x.status === "done"; });
-  var wip = o.filter(function (x) { return x.status === "wip"; });
-  var pending = o.filter(function (x) { return x.status === "pending"; });
-  var lowStock = state.inventory.filter(function (i) { return i.qty <= i.minStock; });
-  var running = state.machines.filter(function (m) { return m.status === "running"; }).length;
-
-  var h = '';
-  h += '<div class="welcome-card"><h2>👋 欢迎回来，融正印刷生产管理系统</h2><p>实时掌握生产进度、员工出勤、设备状态和物料库存</p></div>';
-
-  // Stats row
-  h += '<div class="grid2">';
-  h += '<div class="stat-card"><div class="sicon green">✅</div><div class="sinfo"><div class="sval">' + done.length + '</div><div class="slbl">已完成工单</div></div></div>';
-  h += '<div class="stat-card"><div class="sicon orange">⚙️</div><div class="sinfo"><div class="sval">' + wip.length + '</div><div class="slbl">生产中</div></div></div>';
-  h += '<div class="stat-card"><div class="sicon blue">⏳</div><div class="sinfo"><div class="sval">' + pending.length + '</div><div class="slbl">待排产</div></div></div>';
-  h += '<div class="stat-card"><div class="sicon purple">🏭</div><div class="sinfo"><div class="sval">' + running + '/' + state.machines.length + '</div><div class="slbl">设备运行</div></div></div>';
-  h += '<div class="stat-card"><div class="sicon red">⚠️</div><div class="sinfo"><div class="sval">' + lowStock.length + '</div><div class="slbl">低库存预警</div></div></div>';
-  h += '<div class="stat-card"><div class="sicon blue">📋</div><div class="sinfo"><div class="sval">' + o.length + '</div><div class="slbl">总工单</div></div></div>';
-  h += '</div>';
-
-  // 工序完成图
-  h += '<div class="grid4">';
-  h += '<div class="panel"><div class="panel-hd">📊 各工序完成量</div><div class="panel-bd">';
-  var procCounts = {};
-  ALL_PROCESSES.forEach(function (p) { procCounts[p] = 0; });
-  o.forEach(function (x) { x.processes.forEach(function (p) { if (p.done) procCounts[p.name] = (procCounts[p.name] || 0) + 1; }); });
-  var maxProc = Math.max(1, Math.max.apply(null, Object.values(procCounts)));
-  h += '<div class="chart-wrap">';
-  ALL_PROCESSES.forEach(function (p) { var val = procCounts[p] || 0; h += '<div class="chart-bar" style="height:' + Math.round(val / maxProc * 140) + 'px"><span class="bar-val">' + val + '</span></div>'; });
-  h += '</div><div class="chart-labels">';
-  ALL_PROCESSES.forEach(function (p) { h += '<span>' + p + '</span>'; });
-  h += '</div></div></div>';
-
-  // 低库存 + 最近工单
-  h += '<div class="panel"><div class="panel-hd">⚠️ 低库存物料</div><div class="panel-bd">';
-  if (lowStock.length === 0) {
-    h += '<div class="empty-state"><div class="emp-icon">✅</div><div class="emp-txt">所有物料库存充足</div></div>';
-  } else {
-    lowStock.forEach(function (i) {
-      h += '<div class="alert alert-danger">' + i.name + ' 剩余 ' + i.qty + i.unit + '（最低库存 ' + i.minStock + i.unit + '）</div>';
-    });
-  }
-  h += '</div></div></div>';
-
-  // 最近工单
-  h += '<div class="grid4"><div class="panel"><div class="panel-hd">📋 最近工单</div><div class="panel-bd"><div style="overflow-x:auto"><table><thead><tr><th>合同号</th><th>客户</th><th>产品</th><th>数量</th><th>进度</th></tr></thead><tbody>';
-  var recent = o.slice(-8).reverse();
-  recent.forEach(function (x) {
-    var dc = x.processes.filter(function (p) { return p.done; }).length;
-    var pct = Math.round(dc / x.processes.length * 100);
-    h += '<tr style="cursor:pointer" onclick="showOrderDetail(\'' + x.contractNo + '\')">';
-    h += '<td style="font-weight:500;white-space:nowrap">' + x.contractNo + '</td>';
-    h += '<td>' + x.customer + '</td>';
-    h += '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + x.productName + '</td>';
-    h += '<td>' + x.quantity + '</td>';
-    h += '<td><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:' + pct + '%"></div></div> <span style="font-size:11px;color:var(--txt2)">' + pct + '%</span></td>';
-    h += '</tr>';
-  });
-  h += '</tbody></table></div></div></div></div>';
-
-  C.innerHTML = h;
-};
-
 // ============ ORDERS (工单看板) ============
 var orderFilter = "全部";
 var orderSearch = "";
@@ -368,15 +302,9 @@ function renderWeekAttendance() {
   for (var i = 0; i < 7; i++) { var dd = new Date(mon); dd.setDate(mon.getDate() + i); weekDays.push(dd.getFullYear() + "-" + String(dd.getMonth() + 1).padStart(2, "0") + "-" + String(dd.getDate()).padStart(2, "0")); }
 
   var h = '<div class="panel"><div class="panel-hd">📅 本周出勤汇总</div><div class="panel-bd">';
-  h += '<div class="chart-wrap">';
   var weekCounts = weekDays.map(function (wd) { var a = state.attendance[wd] || {}; return Object.keys(a).filter(function (k) { return a[k].checkIn; }).length; });
-  var weekMax = Math.max(1, Math.max.apply(null, weekCounts));
-  weekCounts.forEach(function (c, i) {
-    h += '<div class="chart-bar" style="height:' + Math.round(c / weekMax * 140) + 'px;background:' + (i === 6 ? "var(--danger)" : "var(--suc)") + '"><span class="bar-val">' + c + '</span></div>';
-  });
-  h += '</div><div class="chart-labels">';
-  weekDays.forEach(function (wd, i) { h += '<span>周' + ["一", "二", "三", "四", "五", "六", "日"][i] + '</span>'; });
-  h += '</div></div></div>';
+  window._statsWeekData = { days: weekDays, counts: weekCounts };
+  h += '<div class="chart-canvas-wrap"><canvas id="statsWeekChart"></canvas></div></div></div>';
   return h;
 }
 
@@ -449,7 +377,7 @@ function showAddEmployee() {
   state.employees.forEach(function(e) {
     h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--brd);font-size:13px">';
     h += '<span><strong>' + e.name + '</strong> <span style="color:var(--txt2)">' + (e.role || '') + '</span> <span style="color:var(--txt3);font-size:11px">[' + e.dept + ']</span></span>';
-    h += '<button class="btn btn-sm btn-out" style="color:var(--danger);border-color:var(--danger)" onclick="deleteEmployee('' + e.id + '')">删除</button>';
+    h += '<button class="btn btn-sm btn-out" style="color:var(--danger);border-color:var(--danger)" onclick="deleteEmployee(\'' + e.id + '\')">删除</button>';
     h += '</div>';
   });
   h += '</div></div>';
@@ -823,15 +751,9 @@ renderers.stats = function () {
   ALL_PROCESSES.forEach(function (p) { procCounts[p] = 0; });
   o.forEach(function (x) { x.processes.forEach(function (p) { if (p.done) procCounts[p.name] = (procCounts[p.name] || 0) + 1; }); });
   var maxProc = Math.max(1, Math.max.apply(null, Object.values(procCounts)));
-  h += '<div class="chart-wrap">';
-  ALL_PROCESSES.forEach(function (p) {
-    var val = procCounts[p] || 0;
-    var barColor = val >= done.length ? "var(--suc)" : "var(--pri)";
-    h += '<div class="chart-bar" style="height:' + Math.round(val / maxProc * 140) + 'px;background:' + barColor + '"><span class="bar-val">' + val + '</span></div>';
-  });
-  h += '</div><div class="chart-labels">';
-  ALL_PROCESSES.forEach(function (p) { h += '<span>' + p + '</span>'; });
-  h += '</div></div></div>';
+  window._statsProcData = procCounts;
+  window._statsDoneCount = done.length;
+  h += '<div class="chart-canvas-wrap"><canvas id="statsProcessChart"></canvas></div></div></div>';
 
   // 客户排名
   h += '<div class="panel"><div class="panel-hd">🏢 客户工单排名 TOP10</div><div class="panel-bd">';
@@ -839,11 +761,8 @@ renderers.stats = function () {
   o.forEach(function (x) { custCounts[x.customer] = (custCounts[x.customer] || 0) + 1; });
   var sorted = Object.entries(custCounts).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 10);
   var maxCust = Math.max(1, sorted.length > 0 ? sorted[0][1] : 1);
-  h += '<div class="chart-wrap">';
-  sorted.forEach(function (e) { h += '<div class="chart-bar" style="height:' + Math.round(e[1] / maxCust * 140) + 'px;background:var(--pri-dk)"><span class="bar-val">' + e[1] + '</span></div>'; });
-  h += '</div><div class="chart-labels">';
-  sorted.forEach(function (e) { h += '<span>' + e[0] + '</span>'; });
-  h += '</div></div></div>';
+  window._statsCustData = sorted;
+  h += '<div class="chart-canvas-wrap"><canvas id="statsCustChart"></canvas></div></div></div>';
 
   // 本周出勤
   h += '<div class="panel"><div class="panel-hd">📅 本周出勤统计</div><div class="panel-bd">';
@@ -853,18 +772,97 @@ renderers.stats = function () {
   var diff = d.getDate() - day + (day === 0 ? -6 : 1);
   var mon = new Date(d.setDate(diff));
   for (var i = 0; i < 7; i++) { var dd = new Date(mon); dd.setDate(mon.getDate() + i); weekDays.push(dd.getFullYear() + "-" + String(dd.getMonth() + 1).padStart(2, "0") + "-" + String(dd.getDate()).padStart(2, "0")); }
-  h += '<div class="chart-wrap">';
   var weekCounts = weekDays.map(function (wd) { var a = state.attendance[wd] || {}; return Object.keys(a).filter(function (k) { return a[k].checkIn; }).length; });
-  var weekMax = Math.max(1, Math.max.apply(null, weekCounts));
-  weekCounts.forEach(function (c, i) {
-    h += '<div class="chart-bar" style="height:' + Math.round(c / weekMax * 140) + 'px;background:' + (i === 6 ? "var(--danger)" : "var(--suc)") + '"><span class="bar-val">' + c + '</span></div>';
-  });
-  h += '</div><div class="chart-labels">';
-  weekDays.forEach(function (wd, i) { h += '<span>周' + ["一", "二", "三", "四", "五", "六", "日"][i] + '</span>'; });
-  h += '</div></div></div>';
+  window._statsWeekData = { days: weekDays, counts: weekCounts };
+  h += '<div class="chart-canvas-wrap"><canvas id="statsWeekChart"></canvas></div></div></div>';
 
   C.innerHTML = h;
+  setTimeout(function() {
+    try {
+      if (window._statsProcData) createStatsProcessChart(window._statsProcData, window._statsDoneCount);
+      if (window._statsCustData) createStatsCustChart(window._statsCustData);
+      if (window._statsWeekData) createStatsWeekChart(window._statsWeekData.days, window._statsWeekData.counts);
+    } catch(e) { console.error('Stats chart error:', e); }
+  }, 100);
 };
+
+// Stats chart creators
+function createStatsProcessChart(procData, doneCount) {
+  var ctx = document.getElementById('statsProcessChart');
+  if (!ctx) return;
+  if (window.chartInstances && window.chartInstances['statsProc']) {
+    window.chartInstances['statsProc'].destroy();
+  }
+  var labels = ALL_PROCESSES;
+  var values = labels.map(function(p) { return procData[p] || 0; });
+  var colors = values.map(function(v) {
+    return v >= doneCount ? 'rgba(5, 150, 105, 0.7)' : 'rgba(37, 99, 235, 0.7)';
+  });
+  var chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{ label: '完成量', data: values, backgroundColor: colors, borderRadius: 4, borderWidth: 0 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0f172a' } },
+      scales: { y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } }
+    }
+  });
+  if (!window.chartInstances) window.chartInstances = {};
+  window.chartInstances['statsProc'] = chart;
+}
+function createStatsCustChart(sorted) {
+  var ctx = document.getElementById('statsCustChart');
+  if (!ctx) return;
+  if (window.chartInstances && window.chartInstances['statsCust']) {
+    window.chartInstances['statsCust'].destroy();
+  }
+  var labels = sorted.map(function(e) { return e[0]; });
+  var values = sorted.map(function(e) { return e[1]; });
+  var chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{ label: '工单数', data: values, backgroundColor: 'rgba(37, 99, 235, 0.75)', borderRadius: 4, borderWidth: 0 }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0f172a' } },
+      scales: { x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f1f5f9' } }, y: { grid: { display: false } } }
+    }
+  });
+  if (!window.chartInstances) window.chartInstances = {};
+  window.chartInstances['statsCust'] = chart;
+}
+function createStatsWeekChart(days, counts) {
+  var ctx = document.getElementById('statsWeekChart');
+  if (!ctx) return;
+  if (window.chartInstances && window.chartInstances['statsWeek']) {
+    window.chartInstances['statsWeek'].destroy();
+  }
+  var labels = days.map(function(d, i) { return '周' + ['一','二','三','四','五','六','日'][i]; });
+  var chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: '出勤人数', data: counts,
+        borderColor: '#059669', backgroundColor: 'rgba(5, 150, 105, 0.1)',
+        fill: true, tension: 0.3, pointRadius: 5, pointBackgroundColor: '#059669'
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0f172a' } },
+      scales: { y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } }
+    }
+  });
+  if (!window.chartInstances) window.chartInstances = {};
+  window.chartInstances['statsWeek'] = chart;
+}
 
 // ============ INIT ============
 

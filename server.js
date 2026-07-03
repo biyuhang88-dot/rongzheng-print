@@ -12,7 +12,13 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "rz123456";
 
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "public"), {
+  setHeaders: function(res) {
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+  }
+}));
 
 // ── Database setup ──────────────────────────────────────────────
 const db = new Database(path.join(__dirname, "rongzheng.db"));
