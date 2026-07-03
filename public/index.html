@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>融正印刷 · 生产管理系统</title>
+<style>
+
+:root {
+  --bg: #f1f5f9;
+  --card: #fff;
+  --pri: #2563eb;
+  --pri-lt: #dbeafe;
+  --pri-dk: #1d4ed8;
+  --suc: #059669;
+  --suc-bg: #d1fae5;
+  --warn: #d97706;
+  --warn-bg: #fef3c7;
+  --danger: #dc2626;
+  --danger-bg: #fee2e2;
+  --txt: #0f172a;
+  --txt2: #64748b;
+  --txt3: #94a3b8;
+  --brd: #e2e8f0;
+  --r: 10px;
+  --r-sm: 6px;
+  --sidebar-w: 220px;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 15px; height: 100%; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: var(--bg); color: var(--txt); height: 100%; display: flex; overflow: hidden;
+}
+
+/* ====== SIDEBAR ====== */
+.sidebar {
+  width: var(--sidebar-w); flex-shrink: 0;
+  background: #0f172a; color: #e2e8f0;
+  display: flex; flex-direction: column; overflow-y: auto; z-index: 20;
+}
+.sidebar-logo { padding: 20px 16px; border-bottom: 1px solid rgba(255,255,255,.08); }
+.sidebar-logo h1 { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: 2px; }
+.sidebar-logo small { font-size: 11px; color: #94a3b8; display: block; margin-top: 2px; }
+.sidebar-nav { flex: 1; padding: 8px; }
+.sidebar-nav .nav-group {
+  font-size: 10px; text-transform: uppercase; color: #64748b;
+  padding: 14px 12px 6px; letter-spacing: 1.5px; font-weight: 600;
+}
+.sidebar-nav .nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: var(--r-sm); cursor: pointer;
+  transition: all .15s; font-size: 14px; color: #cbd5e1;
+  margin-bottom: 2px; border: none; background: none;
+  width: 100%; text-align: left; font-family: inherit;
+}
+.sidebar-nav .nav-item:hover { background: rgba(255,255,255,.06); color: #fff; }
+.sidebar-nav .nav-item.active { background: var(--pri); color: #fff; font-weight: 500; }
+.sidebar-nav .nav-item .nicon { font-size: 16px; width: 22px; text-align: center; flex-shrink: 0; }
+
+/* ====== MAIN ====== */
+.main-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.topbar {
+  height: 52px; flex-shrink: 0; background: var(--card);
+  border-bottom: 1px solid var(--brd); display: flex; align-items: center;
+  padding: 0 20px; justify-content: space-between; z-index: 10;
+}
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.topbar-title { font-size: 16px; font-weight: 600; }
+.topbar-time { font-size: 12px; color: var(--txt2); }
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+.user-badge {
+  display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--txt2);
+  padding: 4px 10px; border-radius: var(--r-sm); border: 1px solid var(--brd); background: var(--bg);
+}
+.content { flex: 1; overflow-y: auto; padding: 20px; }
+.content::-webkit-scrollbar { width: 5px; }
+.content::-webkit-scrollbar-thumb { background: var(--brd); border-radius: 99px; }
+
+/* ====== CARDS & PANELS ====== */
+.welcome-card {
+  background: linear-gradient(135deg, #1e3a5f, #2563eb);
+  color: #fff; border-radius: var(--r); padding: 24px; margin-bottom: 20px;
+}
+.welcome-card h2 { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+.welcome-card p { font-size: 13px; opacity: .85; }
+
+.grid2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.grid3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px; }
+.grid4 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+.stat-card {
+  background: var(--card); border-radius: var(--r); padding: 16px;
+  display: flex; align-items: center; gap: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
+.stat-card .sicon {
+  font-size: 28px; flex-shrink: 0; width: 44px; height: 44px;
+  border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center;
+}
+.stat-card .sinfo { flex: 1; }
+.stat-card .sval { font-size: 26px; font-weight: 700; line-height: 1.2; }
+.stat-card .slbl { font-size: 12px; color: var(--txt2); margin-top: 2px; }
+.sicon.blue { background: var(--pri-lt); color: var(--pri); }
+.sicon.green { background: var(--suc-bg); color: var(--suc); }
+.sicon.orange { background: var(--warn-bg); color: var(--warn); }
+.sicon.red { background: var(--danger-bg); color: var(--danger); }
+.sicon.purple { background: #ede9fe; color: #7c3aed; }
+
+.panel {
+  background: var(--card); border-radius: var(--r);
+  box-shadow: 0 1px 3px rgba(0,0,0,.06); margin-bottom: 16px; overflow: hidden;
+}
+.panel-hd {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; border-bottom: 1px solid var(--brd);
+  font-weight: 600; font-size: 14px;
+}
+.panel-bd { padding: 16px; }
+
+/* ====== BUTTONS ====== */
+.btn {
+  padding: 7px 16px; border-radius: var(--r-sm); font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all .15s; border: none; font-family: inherit;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-pri { background: var(--pri); color: #fff; }
+.btn-pri:hover { background: var(--pri-dk); }
+.btn-out { background: var(--card); color: var(--pri); border: 1.5px solid var(--pri); }
+.btn-out:hover { background: var(--pri-lt); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger:hover { background: #b91c1c; }
+.btn-suc { background: var(--suc); color: #fff; }
+.btn-suc:hover { background: #047857; }
+
+/* ====== TAGS ====== */
+.tag {
+  display: inline-block; padding: 2px 8px; border-radius: 99px;
+  font-size: 11px; font-weight: 500; white-space: nowrap;
+}
+.tag-suc { background: var(--suc-bg); color: var(--suc); }
+.tag-warn { background: var(--warn-bg); color: var(--warn); }
+.tag-danger { background: var(--danger-bg); color: var(--danger); }
+.tag-default { background: #f1f5f9; color: var(--txt2); }
+.tag-blue { background: var(--pri-lt); color: var(--pri); }
+
+/* ====== TABLES ====== */
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  text-align: left; padding: 10px 12px; background: #f8fafc;
+  font-weight: 600; color: var(--txt2); font-size: 12px;
+  border-bottom: 1px solid var(--brd); white-space: nowrap;
+}
+td { padding: 10px 12px; border-bottom: 1px solid var(--brd); }
+tr:hover td { background: #f8fafc; }
+
+/* ====== PROCESS FLOW ====== */
+.process-flow { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+.process-step {
+  display: flex; align-items: center; gap: 3px;
+  padding: 3px 8px; border-radius: 99px; font-size: 11px;
+  background: #f1f5f9; color: var(--txt2); white-space: nowrap;
+  transition: all .2s;
+}
+.process-step.done { background: var(--suc-bg); color: var(--suc); }
+.process-step.outer { background: #ede9fe; color: #7c3aed; }
+.process-step .ps-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.process-step:hover { transform: scale(1.05); box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+
+/* ====== PROGRESS ====== */
+.progress-bar {
+  height: 6px; background: #e2e8f0; border-radius: 99px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; background: var(--pri); border-radius: 99px; transition: width .3s;
+}
+
+/* ====== CHARTS ====== */
+.chart-wrap { display: flex; align-items: flex-end; gap: 4px; height: 160px; padding: 0 4px; }
+.chart-bar {
+  flex: 1; border-radius: 4px 4px 0 0; min-width: 20px;
+  background: var(--pri); transition: height .3s; position: relative;
+  min-height: 4px;
+}
+.chart-bar .bar-val {
+  position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+  font-size: 10px; color: var(--txt2); font-weight: 600;
+}
+.chart-labels { display: flex; gap: 4px; padding: 6px 4px; }
+.chart-labels span {
+  flex: 1; text-align: center; font-size: 10px; color: var(--txt3);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* ====== FORMS ====== */
+.form-group { margin-bottom: 10px; }
+.form-group label { display: block; font-size: 12px; color: var(--txt2); margin-bottom: 4px; font-weight: 500; }
+input, select, textarea {
+  width: 100%; padding: 8px 10px; border: 1px solid var(--brd); border-radius: var(--r-sm);
+  font-size: 13px; font-family: inherit; background: #f8fafc; color: var(--txt);
+  transition: border .15s;
+}
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--pri); background: #fff; }
+textarea { min-height: 60px; resize: vertical; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+/* ====== MODAL ====== */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,.4); z-index: 100; display: flex; align-items: center; justify-content: center;
+  animation: fadeIn .2s;
+}
+.modal-box {
+  background: var(--card); border-radius: var(--r); width: 90%; max-width: 640px; max-height: 85vh;
+  overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.2);
+}
+.modal-hd {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px; border-bottom: 1px solid var(--brd); font-weight: 600; font-size: 15px;
+  position: sticky; top: 0; background: var(--card); z-index: 1;
+}
+.modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--txt2); padding: 4px 8px; border-radius: var(--r-sm); }
+.modal-close:hover { background: var(--bg); color: var(--txt); }
+.modal-bd { padding: 16px; }
+.divider { height: 1px; background: var(--brd); margin: 14px 0; }
+
+/* ====== ALERTS ====== */
+.alert {
+  padding: 10px 14px; border-radius: var(--r-sm); margin-bottom: 12px;
+  font-size: 13px; display: flex; align-items: center; gap: 8px;
+}
+.alert-danger { background: var(--danger-bg); color: var(--danger); }
+.alert-warn { background: var(--warn-bg); color: var(--warn); }
+
+/* ====== CARDS LAYOUT ====== */
+.card-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+/* ====== EMPTY STATE ====== */
+.empty-state { text-align: center; padding: 40px 20px; color: var(--txt3); }
+.empty-state .emp-icon { font-size: 48px; margin-bottom: 8px; }
+.empty-state .emp-txt { font-size: 14px; }
+
+/* ====== TOAST ====== */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: #0f172a; color: #fff; padding: 10px 24px; border-radius: 99px;
+  font-size: 13px; z-index: 200; animation: toastIn .3s, toastOut .3s 2s forwards; white-space: nowrap;
+}
+@keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+@keyframes toastOut { from { opacity: 1; } to { opacity: 0; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 768px) {
+  :root { --sidebar-w: 60px; }
+  .sidebar-logo h1 { font-size: 14px; }
+  .sidebar-logo small { display: none; }
+  .sidebar-nav .nav-item { justify-content: center; padding: 10px; }
+  .sidebar-nav .nav-item span:not(.nicon) { display: none; }
+  .sidebar-nav .nav-group { display: none; }
+  .card-2col { grid-template-columns: 1fr; }
+  .form-row, .form-row3 { grid-template-columns: 1fr; }
+}
+
+</style>
+</head>
+<body>
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <h1>融正印刷</h1>
+    <small>生产管理系统 v2.0</small>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-group">主菜单</div>
+    <button class="nav-item active" data-page="dashboard" onclick="navTo('dashboard')"><span class="nicon">🏠</span> 工作台</button>
+    <button class="nav-item" data-page="orders" onclick="navTo('orders')"><span class="nicon">📋</span> 工单看板</button>
+    <div class="nav-group">生产管理</div>
+    <button class="nav-item" data-page="attendance" onclick="navTo('attendance')"><span class="nicon">🕐</span> 打卡签到</button>
+    <button class="nav-item" data-page="scan" onclick="navTo('scan')"><span class="nicon">📱</span> 扫码报工</button>
+    <button class="nav-item" data-page="schedule" onclick="navTo('schedule')"><span class="nicon">📅</span> 排产调度</button>
+    <button class="nav-item" data-page="equipment" onclick="navTo('equipment')"><span class="nicon">⚙️</span> 设备管理</button>
+    <button class="nav-item" data-page="inventory" onclick="navTo('inventory')"><span class="nicon">📦</span> 物料库存</button>
+    <button class="nav-item" data-page="stats" onclick="navTo('stats')"><span class="nicon">📊</span> 生产报表</button>
+  </nav>
+</aside>
+
+<!-- MAIN -->
+<div class="main-wrap">
+  <header class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-title" id="pageTitle">工作台</span>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-time" id="clockDisplay"></span>
+      <div class="user-badge">👤 管理员</div>
+    </div>
+  </header>
+  <main class="content" id="contentArea"></main>
+</div>
+
+<!-- TOAST -->
+<div id="toastContainer" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:200;pointer-events:none"></div>
+
+
+<script>
+// ==================== 融正印刷 · 云端版 ====================
+var API = "";
+var TOKEN = "";
+var USER = null;
+var C = null;
+
+// Shared data (fetched from server)
+var state = {
+  orders: [],
+  employees: [],
+  machines: [],
+  inventory: [],
+  attendance: {},
+  workReports: [],
+  scheduleItems: []
+};
+
+var ALL_PROCESSES = ["封印","工艺","内印","折页","锁线","胶订","骑订","配书","塑封"];
+var pageTitles = {
+  dashboard: "工作台", orders: "工单看板", attendance: "打卡签到",
+  scan: "扫码报工", schedule: "排产调度", equipment: "设备管理",
+  inventory: "物料库存", stats: "生产报表"
+};
+
+function api(path, opts) {
+  opts = opts || {};
+  var headers = { "Content-Type": "application/json" };
+  if (TOKEN) headers["Authorization"] = "Bearer " + TOKEN;
+  return fetch(API + path, {
+    method: opts.method || "GET",
+    headers: headers,
+    body: opts.body ? JSON.stringify(opts.body) : undefined
+  }).then(function(r) {
+    if (r.status === 401) { logout(); throw new Error("登录过期"); }
+    return r.json();
+  });
+}
+
+// ── Login ──
+function showLogin() {
+  document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,PingFang SC,sans-serif"><div style="background:#fff;padding:40px;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.1);width:360px"><h1 style="font-size:24px;font-weight:700;text-align:center;margin-bottom:4px;letter-spacing:2px">融正印刷</h1><p style="text-align:center;font-size:13px;color:#64748b;margin-bottom:24px">生产管理系统</p><div style="margin-bottom:20px"><label style="display:block;font-size:13px;color:#64748b;margin-bottom:4px">密码</label><input id="loginPass" type="password" style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px" placeholder="请输入密码" onkeydown="if(event.key==&quot;Enter&quot;)doLogin()"></div><button onclick="doLogin()" style="width:100%;padding:10px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:500;cursor:pointer">登录</button><p id="loginErr" style="color:#dc2626;font-size:12px;margin-top:8px;text-align:center;min-height:18px"></p></div></div>';
+}
+
+function doLogin() {
+  var u = "admin";
+  var p = document.getElementById("loginPass").value.trim();
+  if (!p) { document.getElementById("loginErr").textContent = "请输入密码"; return; }
+  fetch(API + "/api/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: u, password: p })
+  }).then(function(r) { return r.json(); }).then(function(d) {
+    if (d.error) { document.getElementById("loginErr").textContent = d.error; return; }
+    TOKEN = d.token;
+    USER = d.user;
+    localStorage.setItem("rz_token", TOKEN);
+    localStorage.setItem("rz_user", JSON.stringify(USER));
+    location.reload();
+  }).catch(function() { document.getElementById("loginErr").textContent = "网络错误"; });
+}
+
+function logout() {
+  TOKEN = "";
+  USER = null;
+  localStorage.removeItem("rz_token");
+  localStorage.removeItem("rz_user");
+  showLogin();
+}
+
+// ── Data loading ──
+function loadAllData() {
+  return Promise.all([
+    api("/api/orders").then(function(d) { state.orders = d; }),
+    api("/api/employees").then(function(d) { state.employees = d; }),
+    api("/api/machines").then(function(d) { state.machines = d; }),
+    api("/api/inventory").then(function(d) { state.inventory = d; }),
+    api("/api/attendance").then(function(d) {
+      state.attendance = {};
+      d.forEach(function(r) { if (!state.attendance[r.date]) state.attendance[r.date] = {}; state.attendance[r.date][r.emp_id] = r; });
+    }),
+    api("/api/reports").then(function(d) { state.workReports = d; }),
+    api("/api/schedules").then(function(d) { state.scheduleItems = d; })
+  ]);
+}
+
+function gid() { return "id" + Date.now() + Math.random().toString(36).slice(2); }
+function today() { var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0"); }
+function nowTime() { var d = new Date(); return String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0"); }
+
+function updateClock() {
+  var d = new Date();
+  var week = ["周日","周一","周二","周三","周四","周五","周六"];
+  var s = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0") + " " + week[d.getDay()] + " " + nowTime();
+  var el = document.getElementById("clockDisplay"); if (el) el.textContent = s;
+}
+
+function toast(msg) {
+  var c = document.getElementById("toastContainer");
+  var el = document.createElement("div");
+  el.className = "toast"; el.textContent = msg;
+  c.appendChild(el);
+  setTimeout(function() { el.remove(); }, 2500);
+}
+
+// ── Navigation ──
+function navTo(page) {
+  document.getElementById("pageTitle").textContent = pageTitles[page] || page;
+  document.querySelectorAll(".sidebar .nav-item").forEach(function(b) { b.classList.remove("active"); });
+  var btn = document.querySelector('.sidebar .nav-item[data-page="' + page + '"]');
+  if (btn) btn.classList.add("active");
+  if (typeof renderers[page] === "function") renderers[page]();
+}
+
+// ── Modal ──
+function showModal(title, bodyHTML) {
+  var overlay = document.createElement("div");
+  overlay.className = "modal-overlay"; overlay.id = "modalOverlay";
+  overlay.innerHTML = '<div class="modal-box"><div class="modal-hd"><span>' + title + '</span><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-bd">' + bodyHTML + '</div></div>';
+  overlay.addEventListener("click", function(e) { if (e.target === overlay) closeModal(); });
+  document.body.appendChild(overlay);
+}
+function closeModal() { var el = document.getElementById("modalOverlay"); if (el) el.remove(); }
+
+// ── RENDERERS ──
+var renderers = {};
+
+renderers.dashboard = function() {
+  var o = state.orders;
+  var done = o.filter(function(x) { return x.status === "done"; });
+  var wip = o.filter(function(x) { return x.status === "wip"; });
+  var pending = o.filter(function(x) { return x.status === "pending"; });
+  var lowStock = state.inventory.filter(function(i) { return i.qty <= i.min_stock; });
+  var running = state.machines.filter(function(m) { return m.status === "running"; }).length;
+
+  var h = '';
+  h += '<div class="welcome-card"><h2>👋 欢迎回来，融正印刷生产管理系统</h2><p>实时掌握生产进度、员工出勤、设备状态和物料库存</p></div>';
+  h += '<div class="grid2">';
+  h += '<div class="stat-card"><div class="sicon green">✅</div><div class="sinfo"><div class="sval">' + done.length + '</div><div class="slbl">已完成工单</div></div></div>';
+  h += '<div class="stat-card"><div class="sicon orange">⚙️</div><div class="sinfo"><div class="sval">' + wip.length + '</div><div class="slbl">生产中</div></div></div>';
+  h += '<div class="stat-card"><div class="sicon blue">⏳</div><div class="sinfo"><div class="sval">' + pending.length + '</div><div class="slbl">待排产</div></div></div>';
+  h += '<div class="stat-card"><div class="sicon purple">🏭</div><div class="sinfo"><div class="sval">' + running + '/' + state.machines.length + '</div><div class="slbl">设备运行</div></div></div>';
+  h += '<div class="stat-card"><div class="sicon red">⚠️</div><div class="sinfo"><div class="sval">' + lowStock.length + '</div><div class="slbl">低库存预警</div></div></div>';
+  h += '<div class="stat-card"><div class="sicon blue">📋</div><div class="sinfo"><div class="sval">' + o.length + '</div><div class="slbl">总工单</div></div></div>';
+  h += '</div>';
+
+  h += '<div class="grid4">';
+  h += '<div class="panel"><div class="panel-hd">📊 各工序完成量</div><div class="panel-bd">';
+  var procCounts = {};
+  ALL_PROCESSES.forEach(function(p) { procCounts[p] = 0; });
+  o.forEach(function(x) { x.processes.forEach(function(p) { if (p.done) procCounts[p.process_name] = (procCounts[p.process_name] || 0) + 1; }); });
+  var maxProc = Math.max(1, Math.max.apply(null, Object.values(procCounts)));
+  h += '<div class="chart-wrap">';
+  ALL_PROCESSES.forEach(function(p) { var val = procCounts[p] || 0; h += '<div class="chart-bar" style="height:' + Math.round(val/maxProc*140) + 'px"><span class="bar-val">' + val + '</span></div>'; });
+  h += '</div><div class="chart-labels">';
+  ALL_PROCESSES.forEach(function(p) { h += '<span>' + p + '</span>'; });
+  h += '</div></div></div>';
+
+  h += '<div class="panel"><div class="panel-hd">⚠️ 低库存物料</div><div class="panel-bd">';
+  if (lowStock.length===0) h += '<div class="empty-state"><div class="emp-icon">✅</div><div class="emp-txt">所有物料库存充足</div></div>';
+  else lowStock.forEach(function(i) { h += '<div class="alert alert-danger">' + i.name + ' 剩余 ' + i.qty + i.unit + '（最低库存 ' + i.min_stock + i.unit + '）</div>'; });
+  h += '</div></div></div>';
+
+  h += '<div class="grid4"><div class="panel"><div class="panel-hd">📋 最近工单</div><div class="panel-bd"><div style="overflow-x:auto"><table><thead><tr><th>合同号</th><th>客户</th><th>产品</th><th>数量</th><th>进度</th></tr></thead><tbody>';
+  var recent = o.slice(-8).reverse();
+  recent.forEach(function(x) {
+    var dc = x.processes.filter(function(p) { return p.done || p.done===1; }).length;
+    var pct = Math.round(dc / x.processes.length * 100);
+    h += '<tr style="cursor:pointer" onclick="showOrderDetail(\'' + x.contract_no + '\')"><td style="font-weight:500;white-space:nowrap">' + x.contract_no + '</td><td>' + x.customer + '</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + x.product_name + '</td><td>' + x.quantity + '</td><td><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:' + pct + '%"></div></div> <span style="font-size:11px;color:var(--txt2)">' + pct + '%</span></td></tr>';
+  });
+  h += '</tbody></table></div></div></div></div>';
+  C.innerHTML = h;
+};
+
+</script>
+<script src="app.js"></script>
+</body>
+</html>

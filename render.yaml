@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: rongzheng-server
+    env: node
+    buildCommand: npm ci
+    startCommand: node server.js
+    plan: free
+    disk:
+      name: sqlite-data
+      mountPath: /opt/render/project/src
+      sizeGB: 1
+    envVars:
+      - key: PORT
+        value: "3000"
+      - key: JWT_SECRET
+        value: rongzheng-2026-secret-key
+      - key: ADMIN_PASSWORD
+        value: rz123456
