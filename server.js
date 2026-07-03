@@ -134,31 +134,46 @@ initDB();
   console.log("Seeding initial data...");
 
   const fs = require("fs");
-  const ordersData = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "_orders.json"), "utf-8"));
-  const insertOrder = db.prepare("INSERT OR IGNORE INTO orders (contract_no, customer, product_name, quantity, qty_num, proofs, sheets, size, binding, deadline, status, remark) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)");
-  const insertProc = db.prepare("INSERT OR IGNORE INTO order_processes (order_id, process_name, done, status) VALUES (?,?,?,?)");
-  const tx = db.transaction(() => {
-    ordersData.forEach(o => {
-      insertOrder.run(o.contractNo, o.customer, o.productName, o.quantity, o.qtyNum || 0, o.proofs || "", o.sheets || "", o.size || "", o.binding || "", o.deadline || "", o.status, o.remark || "");
-      const orderId = db.prepare("SELECT id FROM orders WHERE contract_no = ?").get(o.contractNo).id;
-      (o.processes || []).forEach(p => {
-        insertProc.run(orderId, p.name, p.done ? 1 : 0, p.status || "");
+  
+  // Try to load seed files, skip if not found
+  function tryLoad(filename) {
+    try { return JSON.parse(fs.readFileSync(path.join(__dirname, filename), "utf-8")); }
+    catch(e) { console.log("  (skip " + filename + ": " + e.message + ")"); return []; }
+  }
+  
+  const ordersData = tryLoad("_orders.json");
+  if (ordersData.length > 0) {
+    const insertOrder = db.prepare("INSERT OR IGNORE INTO orders (contract_no, customer, product_name, quantity, qty_num, proofs, sheets, size, binding, deadline, status, remark) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)");
+    const insertProc = db.prepare("INSERT OR IGNORE INTO order_processes (order_id, process_name, done, status) VALUES (?,?,?,?)");
+    const tx = db.transaction(() => {
+      ordersData.forEach(o => {
+        insertOrder.run(o.contractNo, o.customer, o.productName, o.quantity, o.qtyNum || 0, o.proofs || "", o.sheets || "", o.size || "", o.binding || "", o.deadline || "", o.status, o.remark || "");
+        const orderId = db.prepare("SELECT id FROM orders WHERE contract_no = ?").get(o.contractNo).id;
+        (o.processes || []).forEach(p => {
+          insertProc.run(orderId, p.name, p.done ? 1 : 0, p.status || "");
+        });
       });
     });
-  });
-  tx();
+    tx();
+  }
 
-  const empData = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "_employees.json"), "utf-8"));
-  const insertEmp = db.prepare("INSERT OR IGNORE INTO employees (emp_id, name, role, dept, phone) VALUES (?,?,?,?,?)");
-  empData.forEach(e => { insertEmp.run(e.id, e.name, e.role, e.dept, e.phone); });
+  const empData = tryLoad("_employees.json");
+  if (empData.length > 0) {
+    const insertEmp = db.prepare("INSERT OR IGNORE INTO employees (emp_id, name, role, dept, phone) VALUES (?,?,?,?,?)");
+    empData.forEach(e => { insertEmp.run(e.id, e.name, e.role, e.dept, e.phone); });
+  }
 
-  const macData = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "_machines.json"), "utf-8"));
-  const insertMac = db.prepare("INSERT OR IGNORE INTO machines (mac_id, name, type, status, last_maintain, next_maintain, dept) VALUES (?,?,?,?,?,?,?)");
-  macData.forEach(m => { insertMac.run(m.id, m.name, m.type, m.status, m.lastMaintain, m.nextMaintain, m.dept); });
+  const macData = tryLoad("_machines.json");
+  if (macData.length > 0) {
+    const insertMac = db.prepare("INSERT OR IGNORE INTO machines (mac_id, name, type, status, last_maintain, next_maintain, dept) VALUES (?,?,?,?,?,?,?)");
+    macData.forEach(m => { insertMac.run(m.id, m.name, m.type, m.status, m.lastMaintain, m.nextMaintain, m.dept); });
+  }
 
-  const invData = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "_inventory.json"), "utf-8"));
-  const insertInv = db.prepare("INSERT OR IGNORE INTO inventory (inv_id, name, category, qty, unit, min_stock, location) VALUES (?,?,?,?,?,?,?)");
-  invData.forEach(i => { insertInv.run(i.id, i.name, i.category, i.qty, i.unit, i.minStock, i.location); });
+  const invData = tryLoad("_inventory.json");
+  if (invData.length > 0) {
+    const insertInv = db.prepare("INSERT OR IGNORE INTO inventory (inv_id, name, category, qty, unit, min_stock, location) VALUES (?,?,?,?,?,?,?)");
+    invData.forEach(i => { insertInv.run(i.id, i.name, i.category, i.qty, i.unit, i.minStock, i.location); });
+  }
 
   console.log("Seed complete: " + ordersData.length + " orders, " + empData.length + " employees, " + macData.length + " machines, " + invData.length + " inventory");
 })();

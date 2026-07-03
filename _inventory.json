@@ -1,0 +1,13 @@
+[
+  {"id":"inv1","name":"157g铜版纸","category":"纸张","qty":85000,"unit":"令","minStock":10000,"location":"A区1号"},
+  {"id":"inv2","name":"80g双胶纸","category":"纸张","qty":120000,"unit":"令","minStock":15000,"location":"A区2号"},
+  {"id":"inv3","name":"200g白卡纸","category":"纸张","qty":32000,"unit":"令","minStock":5000,"location":"A区3号"},
+  {"id":"inv4","name":"128g铜版纸","category":"纸张","qty":63000,"unit":"令","minStock":8000,"location":"A区4号"},
+  {"id":"inv5","name":"黑墨(快干)","category":"油墨","qty":320,"unit":"kg","minStock":50,"location":"B区1号"},
+  {"id":"inv6","name":"品红墨","category":"油墨","qty":180,"unit":"kg","minStock":30,"location":"B区1号"},
+  {"id":"inv7","name":"热熔胶","category":"辅材","qty":450,"unit":"kg","minStock":80,"location":"B区2号"},
+  {"id":"inv8","name":"润版液","category":"辅材","qty":120,"unit":"L","minStock":30,"location":"B区3号"},
+  {"id":"inv9","name":"亮膜(BOPP)","category":"辅材","qty":68,"unit":"卷","minStock":15,"location":"C区1号"},
+  {"id":"inv10","name":"哑膜(哑光BOPP)","category":"辅材","qty":42,"unit":"卷","minStock":10,"location":"C区2号"},
+  {"id":"inv11","name":"塑封袋(大号)","category":"辅材","qty":50000,"unit":"个","minStock":10000,"location":"C区3号"},
+  {"id":"inv12","name":"装箱胶带","category":"辅材","qty":280,"unit":"卷","minStock":50,"location":"C区4号"}]

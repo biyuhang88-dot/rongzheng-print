@@ -1,0 +1,9 @@
+[
+  {"id":"mac1","name":"海德堡CD102-4","type":"胶印机","status":"running","lastMaintain":"2026-05-15","nextMaintain":"2026-08-15","dept":"印刷车间"},
+  {"id":"mac2","name":"小森LS-440","type":"胶印机","status":"running","lastMaintain":"2026-06-01","nextMaintain":"2026-09-01","dept":"印刷车间"},
+  {"id":"mac3","name":"马天尼骑马订联动线","type":"骑订机","status":"running","lastMaintain":"2026-04-20","nextMaintain":"2026-07-20","dept":"装订车间"},
+  {"id":"mac4","name":"精密达胶订联动线","type":"胶订机","status":"maintenance","lastMaintain":"2026-06-25","nextMaintain":"2026-09-25","dept":"装订车间"},
+  {"id":"mac5","name":"地平线折页机","type":"折页机","status":"running","lastMaintain":"2026-05-10","nextMaintain":"2026-08-10","dept":"装订车间"},
+  {"id":"mac6","name":"覆膜机YZFM-1080","type":"覆膜机","status":"idle","lastMaintain":"2026-06-10","nextMaintain":"2026-09-10","dept":"工艺车间"},
+  {"id":"mac7","name":"模切机ML-1300","type":"模切机","status":"running","lastMaintain":"2026-05-20","nextMaintain":"2026-08-20","dept":"工艺车间"},
+  {"id":"mac8","name":"塑封机SF-800","type":"塑封机","status":"running","lastMaintain":"2026-06-05","nextMaintain":"2026-09-05","dept":"装订车间"}]
